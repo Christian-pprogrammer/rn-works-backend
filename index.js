@@ -1,3 +1,4 @@
+const cors = require('cors')
 const dotenv = require('dotenv');
 dotenv.config({path: './.env'})
 const connect = require('./db_connection');
@@ -5,6 +6,7 @@ connect();
 const express = require("express");
 const router = require('./router');
 const app = express();
+app.use(cors({origin: '*'}))
 
 app.use(express.json());
 
