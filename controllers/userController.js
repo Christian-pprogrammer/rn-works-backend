@@ -1,11 +1,10 @@
 const bcrypt = require('bcrypt');
 const _ = require('lodash');
 const User = require('../models/userModel');
+const Log = require('../models/logModel');
 const generateToken = require('../utils/generateToken');
 
 exports.createUser = async (req,res) => {
-  console.log(req.body.password)
-  console.log(req.body)
   try{
     const password = await bcrypt.hash(req.body.password, 10);
     const newUser = {
@@ -13,6 +12,14 @@ exports.createUser = async (req,res) => {
       password: password
     }
     const created = await User.create(newUser);
+    const date = new Date()
+    const newLog = {
+      username: created.username,
+      logMessage: `${created.username} registered successfully`,
+      date: date.toDateString(),
+      time: date.toTimeString()
+    }
+    await Log.create(newLog);
     const token = generateToken(created);
     res.status(201).json({
       message: 'registered successfully',
@@ -38,13 +45,21 @@ exports.loginUser = async (req,res) => {
     const correctPassword = await bcrypt.compare(req.body.password, userExists.password)
     if(correctPassword) {
       const token = generateToken(userExists);
+      const date = new Date()
+      const newLog = {
+        username: userExists.username,
+        logMessage: `${userExists.username} logged in successfully`,
+        date: date.toDateString(),
+        time: date.toTimeString()
+      }
+      await Log.create(newLog);
       res.status(201).json({
         message: 'login successful',
         user: userExists,
         token: token
       })  
     }else{
-      res.status(403).json({message: 'incorrect username or password'})
+      res.status(401).json({message: 'incorrect username or password'})
     }
     
   }catch(err) {
